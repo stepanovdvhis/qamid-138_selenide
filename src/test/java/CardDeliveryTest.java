@@ -13,10 +13,9 @@ public class CardDeliveryTest {
 
     @BeforeEach
     void setUp() {
-        // Преподаватель просил убрать настройки размера окна и дефолтного таймаута.
-        // Headless-режим мы передаем через параметр командной строки в CI (gradle.yml).
-        // Если локально нужно запустить с окном, можно временно раскомментировать строку ниже.
-        // Configuration.browser = "firefox";
+        // По замечанию преподавателя настройки размера окна и дефолтного таймаута убраны.
+        // Headless-режим передается через параметр в CI (gradle.yml).
+        // Configuration.browser = "firefox"; // Если нужно локально с окном - раскомментируй
     }
 
     @Test
@@ -29,29 +28,25 @@ public class CardDeliveryTest {
         String dateString = date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
 
         // 3. Заполняем форму с помощью тестовых меток (data-test-id)
-        // Если локально эти селекторы не находятся, значит, в вашей версии SUT их нет,
-        // но в CI (на GitHub) они точно есть, судя по замечанию преподавателя.
-
         $("[data-test-id='city'] input").setValue("Казань");
         $("[data-test-id='date'] input").setValue(dateString);
         $("[data-test-id='name'] input").setValue("Иванов Иван");
         $("[data-test-id='phone'] input").setValue("+79001234567");
-
-        // Клик по чекбоксу согласия
         $("[data-test-id='agreement']").click();
 
         // Кнопка "Забронировать"
         $("button.button").click();
 
         // 4. Проверяем результат
-        // Ждем появления уведомления об успехе не дольше 15 секунд
+        // Ждем появления заголовка уведомления (не дольше 15 секунд)
         $(".notification__title")
                 .shouldBe(Condition.visible, Duration.ofSeconds(15))
                 .shouldHave(Condition.text("Успешно"));
 
-        // Проверяем, что в сообщении об успехе фигурирует именно наша дата
+        // Проверяем весь текст сообщения с датой
+        String expectedMessage = "Встреча успешно забронирована на " + dateString;
         $(".notification__content")
                 .shouldBe(Condition.visible)
-                .shouldHave(Condition.text(dateString));
+                .shouldHave(Condition.text(expectedMessage));
     }
 }
